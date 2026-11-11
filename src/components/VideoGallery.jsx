@@ -180,10 +180,11 @@ function VideoCard({ work, onOpen }) {
   );
 }
 
-function MobileVideoCard({ work, index, total }) {
+function MobileVideoCard({ work, index, total, isMuted, onToggleMute }) {
   const cardRef = useRef(null);
   const videoRef = useRef(null);
   const [isActive, setIsActive] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const videoSrc = getVideoSrc(work);
   const thumbnail = getThumbnail(work);
 
@@ -205,11 +206,28 @@ function MobileVideoCard({ work, index, total }) {
     if (!video) return;
 
     if (isActive) {
-      video.play().catch(() => {});
+      video.play().catch(() => setIsPlaying(false));
     } else {
       video.pause();
     }
   }, [isActive]);
+
+  const togglePlayback = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (video.paused) {
+      video.play().catch(() => setIsPlaying(false));
+    } else {
+      video.pause();
+    }
+  };
+
+  const toggleMute = () => {
+    const nextMuted = !isMuted;
+    if (videoRef.current) videoRef.current.muted = nextMuted;
+    onToggleMute(nextMuted);
+  };
 
   return (
     <article
@@ -224,18 +242,13 @@ function MobileVideoCard({ work, index, total }) {
           ref={videoRef}
           src={videoSrc}
           poster={thumbnail || undefined}
-          // muted
+          muted={isMuted}
           loop
           playsInline
           preload="none"
-          onClick={(event) => {
-            const video = event.currentTarget;
-            if (video.paused) {
-              video.play().catch(() => {});
-            } else {
-              video.pause();
-            }
-          }}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+          onClick={togglePlayback}
           className="absolute inset-0 h-full w-full object-cover"
         />
       )}
@@ -259,6 +272,51 @@ function MobileVideoCard({ work, index, total }) {
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t
         from-black/75 via-transparent to-black/20" />
 
+      {!work.youtubeId && (
+        <>
+          <button
+            type="button"
+            onClick={togglePlayback}
+            aria-label={isPlaying ? "Pause video" : "Play video"}
+            className={`absolute left-1/2 top-1/2 z-10 flex h-16 w-16
+              -translate-x-1/2 -translate-y-1/2 items-center justify-center
+              rounded-full bg-black/45 text-white backdrop-blur-sm
+              transition-opacity ${isPlaying ? "pointer-events-none opacity-0" : "opacity-100"}`}
+          >
+            <PlayIcon className="ml-1 h-8 w-8" />
+          </button>
+          <button
+            type="button"
+            onClick={toggleMute}
+            aria-label={isMuted ? "Turn sound on" : "Mute video"}
+            className="absolute right-4 top-[calc(env(safe-area-inset-top)+1rem)]
+              z-20 flex h-11 w-11 items-center justify-center rounded-full
+              bg-black/40 text-white backdrop-blur-md"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-5 w-5"
+              aria-hidden="true"
+            >
+              <path d="M11 5 6 9H3v6h3l5 4V5Z" />
+              {isMuted ? (
+                <path d="m17 9 4 6m0-6-4 6" />
+              ) : (
+                <>
+                  <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+                  <path d="M18.5 5.5a9 9 0 0 1 0 13" />
+                </>
+              )}
+            </svg>
+          </button>
+        </>
+      )}
+
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10
         px-5 pb-[calc(env(safe-area-inset-bottom)+5rem)] text-white">
         {work.category && (
@@ -279,6 +337,7 @@ function MobileVideoCard({ work, index, total }) {
 
 function MobileVideoShowcase({ works, name, eyebrow }) {
   const [activeIndex, setActiveIndex] = useState(null);
+  const [isMuted, setIsMuted] = useState(true);
   const feedRef = useRef(null);
 
   useEffect(() => {
@@ -329,6 +388,8 @@ function MobileVideoShowcase({ works, name, eyebrow }) {
                 work={work}
                 index={index}
                 total={works.length}
+                isMuted={isMuted}
+                onToggleMute={setIsMuted}
               />
             ))}
           </div>
