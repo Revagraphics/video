@@ -224,7 +224,7 @@ function MobileVideoCard({ work, index, total }) {
           ref={videoRef}
           src={videoSrc}
           poster={thumbnail || undefined}
-          muted
+          // muted
           loop
           playsInline
           preload="none"
