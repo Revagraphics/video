@@ -96,7 +96,6 @@ function VideoCard({ work, onOpen }) {
             ref={videoRef}
             src={videoSrc}
             poster={thumbnail || undefined}
-            muted
             loop
             playsInline
             preload="metadata"
@@ -181,6 +180,174 @@ function VideoCard({ work, onOpen }) {
   );
 }
 
+function MobileVideoCard({ work, index, total }) {
+  const cardRef = useRef(null);
+  const videoRef = useRef(null);
+  const [isActive, setIsActive] = useState(false);
+  const videoSrc = getVideoSrc(work);
+  const thumbnail = getThumbnail(work);
+
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card) return undefined;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsActive(entry.isIntersecting && entry.intersectionRatio >= 0.65),
+      { threshold: [0, 0.65, 1] }
+    );
+
+    observer.observe(card);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isActive) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  }, [isActive]);
+
+  return (
+    <article
+      ref={cardRef}
+      data-video-index={index}
+      className="relative h-screen h-[100dvh] w-full snap-start snap-always
+        overflow-hidden bg-black"
+      aria-label={`${work.title}, video ${index + 1} of ${total}`}
+    >
+      {!work.youtubeId && videoSrc && (
+        <video
+          ref={videoRef}
+          src={videoSrc}
+          poster={thumbnail || undefined}
+          muted
+          loop
+          playsInline
+          preload="none"
+          onClick={(event) => {
+            const video = event.currentTarget;
+            if (video.paused) {
+              video.play().catch(() => {});
+            } else {
+              video.pause();
+            }
+          }}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      )}
+
+      {work.youtubeId && isActive && (
+        <iframe
+          src={`https://www.youtube.com/embed/${work.youtubeId}?autoplay=1&mute=1&rel=0&playsinline=1`}
+          title={work.title}
+          className="absolute inset-0 h-full w-full border-0"
+          allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+          allowFullScreen
+        />
+      )}
+
+      {!videoSrc && !work.youtubeId && (
+        <div className="absolute inset-0 flex items-center justify-center text-white/60">
+          No video available
+        </div>
+      )}
+
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t
+        from-black/75 via-transparent to-black/20" />
+
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10
+        px-5 pb-[calc(env(safe-area-inset-bottom)+5rem)] text-white">
+        {work.category && (
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/75">
+            {work.category}
+          </p>
+        )}
+        <h2 className="text-xl font-bold sm:text-2xl">{work.title}</h2>
+        {work.description && (
+          <p className="mt-2 line-clamp-3 max-w-lg text-sm text-white/80">
+            {work.description}
+          </p>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function MobileVideoShowcase({ works, name, eyebrow }) {
+  const [activeIndex, setActiveIndex] = useState(null);
+  const feedRef = useRef(null);
+
+  useEffect(() => {
+    if (activeIndex === null) return;
+
+    const activeCard = feedRef.current?.querySelector(
+      `[data-video-index="${activeIndex}"]`
+    );
+    activeCard?.scrollIntoView({ block: "start" });
+  }, [activeIndex]);
+
+  return (
+    <main aria-label="Video showcase" className="bg-gray-50 px-4 py-10 sm:hidden">
+      <header className="mb-6">
+        <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-orange-600">
+          {eyebrow}
+        </p>
+        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+          Our {name} Videos
+        </h1>
+      </header>
+      {works.length > 0 ? (
+        <div className="grid grid-cols-2 gap-3">
+          {works.map((work, index) => (
+            <VideoCard
+              key={work.id || `${work.title}-${index}`}
+              work={work}
+              onOpen={() => setActiveIndex(index)}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="py-20 text-center text-gray-500">
+          No videos available yet.
+        </div>
+      )}
+
+      {activeIndex !== null && (
+        <div className="fixed inset-0 z-50 bg-black">
+          <div
+            ref={feedRef}
+            className="h-full snap-y snap-mandatory overflow-y-auto
+              overscroll-y-contain"
+          >
+            {works.map((work, index) => (
+              <MobileVideoCard
+                key={work.id || `${work.title}-${index}`}
+                work={work}
+                index={index}
+                total={works.length}
+              />
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setActiveIndex(null)}
+            aria-label="Back to video grid"
+            className="absolute left-4 top-[calc(env(safe-area-inset-top)+1rem)]
+              z-20 flex h-11 w-11 items-center justify-center rounded-full
+              bg-black/40 text-white backdrop-blur-md"
+          >
+            <CloseIcon className="h-6 w-6" />
+          </button>
+        </div>
+      )}
+    </main>
+  );
+}
+
 // Main Gallery
 export default function VideoGallery({
   works = [],
@@ -236,7 +403,9 @@ export default function VideoGallery({
   };
 
   return (
-    <section className="bg-gray-50 py-16 sm:py-20 lg:py-24">
+    <>
+    <MobileVideoShowcase works={works} name={name} eyebrow={eyebrow} />
+    <section className="hidden bg-gray-50 py-16 sm:block sm:py-20 lg:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
         {/* Heading */}
@@ -381,12 +550,13 @@ export default function VideoGallery({
               {activeWork.title}
             </h3>
 
-            <p className="mt-1 text-xs text-white/50">
+            {/* <p className="mt-1 text-xs text-white/50">
               {activeIndex + 1} / {works.length}
-            </p>
+            </p> */}
           </div>
         </div>
       )}
     </section>
+    </>
   );
 }
