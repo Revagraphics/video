@@ -1,0 +1,15 @@
+{
+  "name": "Video Showcase Catalogue | Reva Graphics",
+  "short_name": "Reva Videos",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f9fafb",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

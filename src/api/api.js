@@ -2,7 +2,7 @@ const API_URL = ( import.meta.env.VITE_API_URL || "https://video-backend-qibq.on
 ).replace(/\/+$/, "");
 const VIDEOS_PATH = "/api/video";
 
-export const ADMIN_UPLOADS_ENABLED = false;
+export const ADMIN_UPLOADS_ENABLED = true;
 
 const CACHE_KEY = "videos:first-page:v1";
 const RETRY_DELAY_MS = 2500;
