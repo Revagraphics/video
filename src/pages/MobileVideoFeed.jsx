@@ -237,7 +237,7 @@ export default function MobileVideoFeed({ initialWorks, initialIndex, initialNex
   const [works, setWorks] = useState(initialWorks);
   const [nextCursor, setNextCursor] = useState(initialNextCursor);
   const [activeIndex, setActiveIndex] = useState(initialIndex);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   const [notice, setNotice] = useState("");
   const [loadingMore, setLoadingMore] = useState(false);
   const [loadError, setLoadError] = useState("");
