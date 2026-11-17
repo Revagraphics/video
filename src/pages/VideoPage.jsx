@@ -65,7 +65,6 @@ export default function VideoPage({ isModal = false }) {
     : 0;
   const [video, setVideo] = useState(null);
   const [error, setError] = useState("");
-  const [useOriginal, setUseOriginal] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
 
@@ -76,7 +75,6 @@ export default function VideoPage({ isModal = false }) {
 
     setVideo(null);
     setError("");
-    setUseOriginal(false);
 
     api.getVideo(id)
       .then((item) => active && setVideo(item))
@@ -128,9 +126,8 @@ export default function VideoPage({ isModal = false }) {
 
   const videoElement = video && (
     <video
-      key={`${video.id}-${useOriginal}`}
-      src={useOriginal ? video.videoUrl : getPlaySrc(video)}
-      poster={getPoster(video, 720) || undefined}
+      src={getPlaySrc(video)}
+      poster={getPoster(video) || undefined}
       className="h-full w-full object-cover sm:object-contain"
       controls
       autoPlay
@@ -138,7 +135,6 @@ export default function VideoPage({ isModal = false }) {
       muted={isMuted}
       preload="metadata"
       controlsList="nodownload"
-      onError={() => !useOriginal && setUseOriginal(true)}
     />
   );
 

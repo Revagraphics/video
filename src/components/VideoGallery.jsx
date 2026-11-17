@@ -13,7 +13,7 @@ function PlayIcon({ className = "" }) {
 function VideoCard({ work, works, index, nextCursor }) {
   const location = useLocation();
   const [imageFailed, setImageFailed] = useState(false);
-  const poster = getPoster(work, 480);
+  const poster = getPoster(work);
   const duration = formatDuration(work.duration);
 
   return (

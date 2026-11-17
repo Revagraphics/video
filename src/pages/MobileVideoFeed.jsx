@@ -60,9 +60,8 @@ function MobileVideoCard({
   const [isActive, setIsActive] = useState(false);
   const [isNear, setIsNear] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [useOriginal, setUseOriginal] = useState(false);
-  const poster = getPoster(work, 480);
-  const src = useOriginal ? work.videoUrl : getPlaySrc(work);
+  const poster = getPoster(work);
+  const src = getPlaySrc(work);
 
   useEffect(() => {
     const card = cardRef.current;
@@ -133,13 +132,19 @@ function MobileVideoCard({
           src={isNear ? src : undefined}
           poster={poster || undefined}
           muted={isMuted}
+          autoPlay={isActive}
           loop
           playsInline
           preload="metadata"
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
+          onCanPlay={() => {
+            const video = videoRef.current;
+            if (isActive && video?.paused) {
+              video.play().catch(() => setIsPlaying(false));
+            }
+          }}
           onClick={togglePlayback}
-          onError={() => !useOriginal && setUseOriginal(true)}
           className="absolute inset-0 h-full w-full object-cover"
         />
       ) : (
